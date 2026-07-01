@@ -1,0 +1,10 @@
+{
+  "name": "neon-runner",
+  "version": "0.1.0",
+  "description": "横版 2D 霓虹跑酷小游戏（纯 Web，无构建步骤）",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "serve": "python3 -m http.server 8000"
+  }
+}

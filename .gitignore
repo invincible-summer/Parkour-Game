@@ -1,0 +1,61 @@
+# ===== 依赖 =====
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.pnp.*
+
+# Python（http.server / 临时脚本可能产生）
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ===== 密钥与凭证（绝不提交）=====
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*credentials*
+*secret*
+secrets.*
+*.token
+
+# ===== 日志 =====
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ===== 构建产物 / 缓存 =====
+dist/
+build/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+
+# ===== 临时与调试文件 =====
+_*.mjs
+_*.html
+_*.js
+_*.png
+/tmp/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== 编辑器 / IDE =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== 浏览器自动生成（截图验证用，不入库）=====
+/mnt/c/Temp/

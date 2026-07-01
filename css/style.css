@@ -1,0 +1,115 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #06030f;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  color: #e8e0ff;
+  overflow: hidden;
+}
+
+#stage {
+  position: relative;
+  width: 960px;
+  height: 544px;
+  margin: 0 auto;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0 60px rgba(124,60,255,0.4), 0 0 120px rgba(255,77,141,0.25);
+  border: 1px solid #3b1d6e;
+}
+
+#game {
+  display: block;
+  width: 960px;
+  height: 544px;
+  background: #06030f;
+  image-rendering: pixelated;
+}
+
+/* 通用浮层 */
+.overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px;
+  background: radial-gradient(ellipse at center, rgba(20,8,46,0.78), rgba(6,3,15,0.92));
+  backdrop-filter: blur(2px);
+  text-align: center;
+  z-index: 5;
+}
+
+.title {
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: #19f0ff;
+  text-shadow: 0 0 18px #19e7ff, 0 0 40px #7a3cff;
+}
+.title.sm { font-size: 34px; letter-spacing: 4px; }
+.subtitle {
+  font-size: 16px; letter-spacing: 8px;
+  color: #ff4d8d; text-shadow: 0 0 12px #ff4d8d;
+  margin-top: -8px;
+}
+
+.menu-buttons { display: flex; gap: 18px; margin-top: 8px; }
+
+button {
+  cursor: pointer; border: none; outline: none;
+  font-family: inherit; font-weight: 700;
+  border-radius: 10px;
+  transition: transform .12s, box-shadow .12s;
+}
+button:active { transform: scale(0.96); }
+
+.primary {
+  padding: 14px 30px;
+  font-size: 18px; letter-spacing: 2px;
+  color: #06030f;
+  background: linear-gradient(135deg, #19e7ff, #7a3cff);
+  box-shadow: 0 0 18px rgba(25,231,255,0.6);
+}
+.primary:hover { box-shadow: 0 0 28px rgba(25,231,255,0.9); }
+
+.ghost {
+  padding: 10px 22px;
+  font-size: 14px; letter-spacing: 1px;
+  color: #c8b8ff;
+  background: transparent;
+  border: 1px solid #5a3aa0;
+}
+.ghost:hover { color: #fff; border-color: #19e7ff; }
+
+.meta { font-size: 15px; color: #c8b8ff; }
+.meta b { color: #ffd84d; }
+.hint { font-size: 13px; color: #8a7ac8; line-height: 1.7; margin-top: 12px; }
+.newbest { color: #ffd84d; font-weight: 800; font-size: 18px; text-shadow: 0 0 12px #ffd84d; }
+
+/* 关卡列表 */
+.level-list { display: flex; flex-direction: column; gap: 10px; max-width: 420px; width: 80%; }
+.level-btn {
+  padding: 12px 20px; text-align: left;
+  font-size: 15px;
+  color: #e8e0ff;
+  background: rgba(36,18,71,0.6);
+  border: 1px solid #5a3aa0;
+}
+.level-btn:hover:not(:disabled) { border-color: #19e7ff; background: rgba(25,231,255,0.12); }
+.level-btn.locked { color: #5a4a8a; cursor: not-allowed; }
+
+/* HUD */
+.hud {
+  position: absolute; top: 0; left: 0; right: 0;
+  padding: 10px 16px;
+  z-index: 3; pointer-events: none;
+}
+.hud-left { display: flex; gap: 22px; align-items: center; }
+.hud-mode {
+  font-size: 13px; letter-spacing: 2px; color: #19e7ff;
+  text-shadow: 0 0 8px #19e7ff;
+}
+.hud-stat { font-size: 14px; color: #c8b8ff; }
+.hud-stat b { color: #ffd84d; font-size: 17px; }
+
+.hidden { display: none !important; }
