@@ -34,6 +34,7 @@ export class Player {
     this.isSliding = false;
     this.slideTimer = 0;       // 滑铲最短剩余时长
     this.slideCd = 0;
+    this.jumpCutDone = false;  // 本次跳跃是否已做可变跳高削减（防每帧重复衰减）
     this.animTime = 0;
     this.trail = [];
     this.dead = false;
@@ -75,8 +76,11 @@ export class Player {
     }
     if (b.vy > PHYS.maxFallVy) b.vy = PHYS.maxFallVy;
 
-    // 可变跳高：松开跳跃键且仍在上升则削减速度
-    if (!input.jumpHeld && b.vy < PHYS.cutThreshold) b.vy *= PHYS.cutJumpMul;
+    // 可变跳高：松开跳跃键的「瞬间」做一次性削减（用 flag 防止每帧重复衰减导致手感发顿）
+    if (!input.jumpHeld && !this.jumpCutDone && b.vy < PHYS.cutThreshold) {
+      b.vy *= PHYS.cutJumpMul;
+      this.jumpCutDone = true;
+    }
 
     // ---- 积分 + 碰撞解算 ----
     Physics.moveAndCollide(b, world, dt);
@@ -104,6 +108,8 @@ export class Player {
 
   tryJump(world) {
     const b = this.body;
+    // 记录起跳前的水平速度，跳跃时保持（跑酷中跳起不丢向前惯性）
+    const keepVx = b.vx;
 
     // 蹬墙跳：贴墙且（不在地面或 coyote 已过）时，向前上方 vault
     if (!b.onGround && this.coyote <= 0 && this.wallStick > 0 && this.lastWallDir !== 0) {
@@ -111,6 +117,7 @@ export class Player {
       b.vy = PHYS.wallJumpY;
       this.wallLock = PHYS.wallLockTime;
       this.jumpsLeft = 1;
+      this.jumpCutDone = false;
       this.isSliding = false;
       this.standUpIfPossible(world);
       this.fx.burst(b.x + b.w / 2, b.y + b.h / 2, '#19e7ff', 14, 240);
@@ -120,7 +127,9 @@ export class Player {
     // 地面 / coyote 跳
     if (b.onGround || this.coyote > 0) {
       b.vy = PHYS.jumpVel;
+      b.vx = Math.max(keepVx, PHYS.moveSpeed);  // 起跳保持向前速度
       this.jumpsLeft = 1;
+      this.jumpCutDone = false;
       this.coyote = 0;
       this.isSliding = false;
       this.standUpIfPossible(world);
@@ -132,6 +141,8 @@ export class Player {
     if (this.jumpsLeft > 0) {
       this.jumpsLeft--;
       b.vy = PHYS.doubleJumpVel;
+      b.vx = Math.max(keepVx, PHYS.moveSpeed);  // 二段跳也保持向前惯性
+      this.jumpCutDone = false;
       this.isSliding = false;
       this.standUpIfPossible(world);
       this.fx.burst(b.x + b.w / 2, b.y + b.h, '#19f0ff', 10, 160);

@@ -1,5 +1,5 @@
 import { CONFIG } from '../data/config.js';
-import { TILE } from './Tile.js';
+import { TILE, isSolid } from './Tile.js';
 import { TileMap } from './TileMap.js';
 import { Coin } from '../entities/Coin.js';
 import { Obstacle } from '../entities/Obstacle.js';
@@ -12,6 +12,22 @@ const CHUNK_W_TILES = 20;              // 每个 chunk 宽 20 tile = 640px
 const WORLD_H_TILES = 17;              // 视口 tile 高度
 const GROUND_Y = WORLD_H_TILES - 2;    // 主地面行（倒数第 2 行）
 const VIEW_MARGIN = 4 * T;             // 镜头外生成/回收余量
+
+// 在 (tx,ty) 放金币；若该格实心（高台/墙内）则逐格上移到第一个空位，仍无空位则放弃。
+// 根治「金币生成在墙内」。
+function placeCoin(tileMap, entities, tx, ty) {
+  let y = ty;
+  while (y > 0 && isSolid(tileMap.get(tx, y))) y--;
+  if (isSolid(tileMap.get(tx, y))) return;     // 顶到天花板仍是实心，放弃
+  entities.push(new Coin(tx * T + T / 2, y * T + T / 2));
+}
+// 道具同理
+function placePowerUp(tileMap, entities, tx, ty, kind) {
+  let y = ty;
+  while (y > 0 && isSolid(tileMap.get(tx, y))) y--;
+  if (isSolid(tileMap.get(tx, y))) return;
+  entities.push(new PowerUp(tx * T + T / 2, y * T + T / 2, kind));
+}
 
 // ---- 段落类型库 ----
 // 地面行(GROUND_Y/GROUND_Y+1)始终连续铺设；段落描述「地面之上的结构」。
@@ -92,7 +108,7 @@ export class Spawner {
       for (let x = leftTx; x < leftTx + pad; x++) this.putGround(tileMap, x);
       for (let x = leftTx + pad + pitW; x < rightTx; x++) this.putGround(tileMap, x);
       for (let i = 0; i < pitW; i++)
-        entities.push(new Coin((leftTx + pad + i) * T + T / 2, (GROUND_Y - 2) * T + T / 2));
+        placeCoin(tileMap, entities, leftTx + pad + i, GROUND_Y - 2);
     } else {
       // 其余段落：地面连续
       for (let x = leftTx; x < rightTx; x++) this.putGround(tileMap, x);
@@ -110,7 +126,7 @@ export class Spawner {
         const wtx = leftTx + rng.int(2, Math.max(2, width - 3));
         for (let y = GROUND_Y - 1; y >= GROUND_Y - wallH; y--) tileMap.set(wtx, y, TILE.SOLID);
         // 矮墙后放金币奖励跳跃
-        entities.push(new Coin((wtx + 2) * T + T / 2, (GROUND_Y - 2) * T + T / 2));
+        placeCoin(tileMap, entities, wtx + 2, GROUND_Y - 2);
       } else if (seg === 'raised') {
         // 低台阶段（仅 1 格高，可跑上/跳上）：用斜过渡避免立面卡墙
         const h = 1;
@@ -124,7 +140,7 @@ export class Spawner {
           const n = rng.int(2, 4);
           const cx0 = leftTx + rng.int(1, Math.max(1, width - n - 1));
           for (let i = 0; i < n; i++)
-            entities.push(new Coin((cx0 + i) * T + T / 2, (GROUND_Y - 2) * T + T / 2));
+            placeCoin(tileMap, entities, cx0 + i, GROUND_Y - 2);
         }
       }
 
@@ -133,15 +149,12 @@ export class Spawner {
         const n = rng.int(2, 4);
         const cx0 = leftTx + rng.int(1, Math.max(1, width - n - 1));
         for (let i = 0; i < n; i++)
-          entities.push(new Coin((cx0 + i) * T + T / 2, (GROUND_Y - 2) * T + T / 2));
+          placeCoin(tileMap, entities, cx0 + i, GROUND_Y - 2);
       }
       // 通用：道具
       if (rng.next() < dp.powerP) {
         const kinds = ['shield', 'magnet', 'speed'];
-        entities.push(new PowerUp(
-          (leftTx + (width >> 1)) * T + T / 2,
-          (GROUND_Y - 3) * T + T / 2,
-          kinds[rng.int(0, 2)]));
+        placePowerUp(tileMap, entities, leftTx + (width >> 1), GROUND_Y - 3, kinds[rng.int(0, 2)]);
       }
     }
 

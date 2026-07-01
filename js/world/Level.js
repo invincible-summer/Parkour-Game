@@ -1,5 +1,5 @@
 import { CONFIG } from '../data/config.js';
-import { TILE } from './Tile.js';
+import { TILE, isSolid } from './Tile.js';
 import { TileMap } from './TileMap.js';
 import { Coin } from '../entities/Coin.js';
 import { Obstacle } from '../entities/Obstacle.js';
@@ -9,6 +9,13 @@ const T = CONFIG.TILE;
 const CHAR = {
   '.': TILE.EMPTY, '#': TILE.SOLID, '|': TILE.WALL, '^': TILE.ONE_WAY,
 };
+
+// 从 ty 向上找第一个非实心 tile 行（防金币/道具嵌在墙或平台内）；找不到则原样返回。
+function airY(tileMap, tx, ty) {
+  let y = ty;
+  while (y > 0 && isSolid(tileMap.get(tx, y))) y--;
+  return y;
+}
 
 // 解析关卡数据 → { tileMap, entities, goalX, spawn, width, height, name }
 export function loadLevel(data) {
@@ -27,11 +34,16 @@ export function loadLevel(data) {
   }
 
   const entities = [];
-  for (const c of data.coins || []) entities.push(new Coin(c.x * T + T / 2, c.y * T + T / 2));
+  for (const c of data.coins || []) {
+    const y = airY(tileMap, c.x, c.y);        // 实心则上移到空位
+    entities.push(new Coin(c.x * T + T / 2, y * T + T / 2));
+  }
   for (const o of data.obstacles || [])
     entities.push(new Obstacle(o.x * T, o.y * T, o.type));
-  for (const p of data.powerups || [])
-    entities.push(new PowerUp(p.x * T + T / 2, p.y * T + T / 2, p.type));
+  for (const p of data.powerups || []) {
+    const y = airY(tileMap, p.x, p.y);
+    entities.push(new PowerUp(p.x * T + T / 2, y * T + T / 2, p.type));
+  }
 
   const spawn = { x: data.start.x * T, y: data.start.y * T };
   const goalX = data.goal.x * T;
